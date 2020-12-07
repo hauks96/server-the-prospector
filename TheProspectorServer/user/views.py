@@ -17,7 +17,7 @@ from user.models import LevelProgress, LevelCompletionStats
 def guest_user(request):
     guest = User.objects.get(username='GuestUser')
     token = Token.objects.get(user=guest)
-    return JsonResponse({'token': token}, status=status.HTTP_200_OK)
+    return JsonResponse({'token': token.key}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
