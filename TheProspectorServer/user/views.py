@@ -132,18 +132,18 @@ def level_stats(request):
             try:
                 data = get_body(keys=keys, req_body=data)
             except KeyError as error:
-                return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({"message": error}, status=status.HTTP_400_BAD_REQUEST)
 
         else:
             try:
                 data = get_form_data(keys=keys, request=request)
             except KeyError as error:
-                return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({"message": error}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             data = type_check(data=data, types=types)
         except ValueError as error:
-            return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"message": error}, status=status.HTTP_400_BAD_REQUEST)
 
         # Add to level stats
         stats = LevelCompletionStats.objects.create(user=request.user, restarts=data['restarts'],
@@ -166,7 +166,7 @@ def type_check(data: dict, types: dict) -> dict:
             try:
                 data[keys[i]] = types[keys[i]](data[keys[i]])
             except ValueError:
-                error_str = "Incorrect type received for key '"+data[keys[i]]+"'."
+                error_str = "Incorrect type received for key '" + data[keys[i]] + "'."
                 raise ValueError(error_str)
     return data
 
@@ -177,7 +177,7 @@ def get_body(keys: list, req_body: dict) -> dict:
         try:
             ret_data[keys[i]] = req_body[keys[i]]
         except KeyError:
-            raise KeyError("Missing key value pair '"+keys[i]+"'.")
+            raise KeyError("Missing key value pair '" + keys[i] + "'.")
 
     return ret_data
 
@@ -187,7 +187,7 @@ def get_form_data(keys: list, request) -> dict:
     for i in range(len(keys)):
         curr_val = request.POST.get(keys[i])
         if curr_val is None:
-            raise KeyError("Missing key value pair '"+keys[i]+ "'.")
+            raise KeyError("Missing key value pair '" + keys[i] + "'.")
         ret_data[keys[i]] = curr_val
 
     return ret_data
@@ -205,16 +205,14 @@ class StatsRep:
                 levels_total[stat.level] = copy.deepcopy(level_total_preset)
 
             curr_level_stats = levels_total[stat.level]
-            curr_level_stats["time"]+=stat.time
-            curr_level_stats["plays"]+=1
-            curr_level_stats["restarts"]+=stat.restarts
+            curr_level_stats["time"] += stat.time
+            curr_level_stats["plays"] += 1
+            curr_level_stats["restarts"] += stat.restarts
 
         levels = levels_total.keys()
         for level in levels:
             plays = levels_total[level]["plays"]
-            levels_total[level]["time"] = levels_total[level]["time"]/plays
-            levels_total[level]["restarts"] = levels_total[level]["restarts"]/plays
+            levels_total[level]["time"] = levels_total[level]["time"] / plays
+            levels_total[level]["restarts"] = levels_total[level]["restarts"] / plays
 
         return levels_total
-
-
