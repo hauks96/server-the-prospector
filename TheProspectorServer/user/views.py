@@ -74,6 +74,8 @@ def registration(request):
         user = User.objects.create_user(username=username, password=password1, email=fake_email)
 
         token = Token.objects.get(user=user).key
+        level_progress = LevelProgress.objects.create(user=user)
+        level_progress.save()
         return JsonResponse({"message": "Successfully registered", "token": token}, status=status.HTTP_200_OK)
 
 
@@ -86,6 +88,8 @@ def user_progress(request):
         return JsonResponse({"current_level": user_level_progress.current_level})
 
     if request.method == "POST":
+        if request.user.username == "GuestUser":
+            return JsonResponse({'message': "GuestUser level progression is not saved."}, status=status.HTTP_200_OK)
         try:
             data = json.loads(request.body)
         except ValueError:
