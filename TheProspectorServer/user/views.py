@@ -13,6 +13,13 @@ from rest_framework.permissions import IsAuthenticated
 from user.models import LevelProgress, LevelCompletionStats
 
 
+@api_view(['GET'])
+def guest_user(request):
+    guest = User.objects.get(username='GuestUser')
+    token = Token.objects.get(user=guest)
+    return JsonResponse({'token': token}, status=status.HTTP_200_OK)
+
+
 @api_view(['POST'])
 def registration(request):
     if request.method == "POST":
