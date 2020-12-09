@@ -10,7 +10,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
-from user.models import LevelProgress, LevelCompletionStats
+from user.models import UnlockedLevel, LevelCompletionStat, LevelStar
 
 
 @api_view(['GET'])
@@ -31,7 +31,6 @@ def registration(request):
         username = request.POST.get("username")
         password1 = request.POST.get("password1")
         password2 = request.POST.get("password2")
-        print(username, password1, password2)
 
         # If something is missing from request body
         if username is None or password1 is None or password2 is None:
@@ -74,7 +73,7 @@ def registration(request):
         user = User.objects.create_user(username=username, password=password1, email=fake_email)
 
         token = Token.objects.get(user=user).key
-        level_progress = LevelProgress.objects.create(user=user)
+        level_progress = UnlockedLevel.objects.create(user=user)
         level_progress.save()
         return JsonResponse({"message": "Successfully registered", "token": token}, status=status.HTTP_200_OK)
 
@@ -83,13 +82,14 @@ def registration(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def user_progress(request):
-    user_level_progress = LevelProgress.objects.get(user=request.user)
+    user_level_progress = UnlockedLevel.objects.get(user=request.user)
     if request.method == "GET":
         return JsonResponse({"current_level": user_level_progress.current_level})
 
     if request.method == "POST":
         if request.user.username == "GuestUser":
             return JsonResponse({'message': "GuestUser level progression is not saved."}, status=status.HTTP_200_OK)
+
         try:
             data = json.loads(request.body)
         except ValueError:
@@ -113,10 +113,75 @@ def user_progress(request):
             except ValueError:
                 return JsonResponse({"message": "Invalid level for update. Must be integer."},
                                     status=status.HTTP_400_BAD_REQUEST)
-
-        user_level_progress.current_level = new_level
-        user_level_progress.save()
+        if user_level_progress.current_level < new_level:
+            user_level_progress.current_level = new_level
+            user_level_progress.save()
         return JsonResponse({"current_level": user_level_progress.current_level}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_best_time(request, level):
+    user_best_level_data = LevelCompletionStat.objects.filter(user=request.user, level=level).order_by('time').first()
+
+    if user_best_level_data is None:
+        return JsonResponse({"message": "No best time yet"}, status=status.HTTP_400_BAD_REQUEST)
+
+    return JsonResponse({"time": user_best_level_data.time}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def level_stars(request):
+    if request.method == "GET":
+        # Get all level stars in json list
+        levels = LevelStar.objects.filter(user=request.user).order_by('level')
+        list_stars = []
+        list_levels = []
+        for i in range(len(levels)):
+            list_stars.append(levels[i].stars)
+            list_levels.append(levels[i].level)
+
+        return JsonResponse({'levels': list_levels, 'stars': list_stars}, status=status.HTTP_200_OK)
+
+    if request.method == "POST":
+        # Get the data from request
+        keys = ['level', 'stars']
+        types = {'level': int, 'stars': int}
+
+        try:
+            data = json.loads(request.body)
+        except ValueError:
+            data = None
+
+        if data is not None:
+            try:
+                data = get_body(keys=keys, req_body=data)
+            except KeyError as error:
+                return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            try:
+                data = get_form_data(keys=keys, request=request)
+            except KeyError as error:
+                return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            data = type_check(data=data, types=types)
+        except ValueError as error:
+            return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+        level_stars_obj = LevelStar.objects.get_or_create(user=request.user, level=data['level'])[0]
+        data_stars = data['stars']
+        if data_stars > level_stars_obj.stars:
+            if data_stars > 3:
+                return JsonResponse({"message": "Cannot update with more than 3 stars."}, status=status.HTTP_400_BAD_REQUEST)
+            level_stars_obj.stars = data_stars
+            level_stars_obj.save()
+
+        return JsonResponse({"message": "Updated level stars!"}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -136,31 +201,86 @@ def level_stats(request):
             try:
                 data = get_body(keys=keys, req_body=data)
             except KeyError as error:
-                return JsonResponse({"message": error}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
         else:
             try:
                 data = get_form_data(keys=keys, request=request)
             except KeyError as error:
-                return JsonResponse({"message": error}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             data = type_check(data=data, types=types)
         except ValueError as error:
-            return JsonResponse({"message": error}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
         # Add to level stats
-        stats = LevelCompletionStats.objects.create(user=request.user, restarts=data['restarts'],
-                                                    time=data['time'], level=data['level'])
+        stats = LevelCompletionStat.objects.create(user=request.user, restarts=data['restarts'],
+                                                   time=data['time'], level=data['level'])
         stats.save()
         return JsonResponse({"message": "Level data saved", "data": data}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
 def get_average_per_level(request):
-    all_stats = LevelCompletionStats.objects.all()
+    all_stats = LevelCompletionStat.objects.all()
     data = StatsRep.get_average_per_level(all_stats)
     return JsonResponse({"message": "Data successfully fetched.", "data": data}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def update_all(request):
+    keys = ['level', 'stars', 'restarts', 'time']
+    types = {'level': int, 'stars': int, 'restarts': int, 'time': float}
+
+    try:
+        data = json.loads(request.body)
+    except ValueError:
+        data = None
+
+    if data is not None:
+        try:
+            data = get_body(keys=keys, req_body=data)
+        except KeyError as error:
+            return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+    else:
+        try:
+            data = get_form_data(keys=keys, request=request)
+        except KeyError as error:
+            return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        data = type_check(data=data, types=types)
+    except ValueError as error:
+        return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Add game data to level stats
+    stats = LevelCompletionStat.objects.create(user=request.user, restarts=data['restarts'],
+                                               time=data['time'], level=data['level'])
+    stats.save()
+
+    if request.user.username != "GuestUser":
+        # Update level stars if needed
+        level_stars_obj = LevelStar.objects.get_or_create(user=request.user, level=data['level'])[0]
+        data_stars = data['stars']
+
+        if data_stars > level_stars_obj.stars:
+            if data_stars > 3:
+                return JsonResponse({"message": "Cannot update with more than 3 stars."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            level_stars_obj.stars = data_stars
+            level_stars_obj.save()
+
+        # Update users unlocked level if needed
+        user_level_progress = UnlockedLevel.objects.get(user=request.user)
+        if user_level_progress.current_level < data['level']:
+            user_level_progress.current_level = data['level']
+            user_level_progress.save()
+
+    return JsonResponse({'message': 'Game data stored. Level stars updated. User level unlocks updated.'})
 
 
 def type_check(data: dict, types: dict) -> dict:
@@ -170,7 +290,7 @@ def type_check(data: dict, types: dict) -> dict:
             try:
                 data[keys[i]] = types[keys[i]](data[keys[i]])
             except ValueError:
-                error_str = "Incorrect type received for key '" + data[keys[i]] + "'."
+                error_str = "Incorrect type received for key '" + keys[i] + "': " + str(data[keys[i]]) + "."
                 raise ValueError(error_str)
     return data
 

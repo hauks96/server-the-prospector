@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 # Register your models here.
-from user.models import LevelProgress, LevelCompletionStats
+from user.models import UnlockedLevel, LevelCompletionStat, LevelStar
 
-admin.site.register(LevelProgress)
-admin.site.register(LevelCompletionStats)
+admin.site.register(UnlockedLevel)
+admin.site.register(LevelCompletionStat)
+admin.site.register(LevelStar)
