@@ -45,8 +45,8 @@ url: **/user/unlocked-level/**
 
 | Request Type | Params | Return | Auth Required |
 |----|----|----|----|
-| POST | `current_level: str`| `current_level: int` | True |
-| GET | `None`| `current_level: int` | True |
+| POST | `unlocked_level: str`| `current_level: int` | True |
+| GET | `None`| `unlocked_level: int` | True |
 
 
 ## Save Level results (Without score/stars)
