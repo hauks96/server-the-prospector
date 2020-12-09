@@ -59,6 +59,14 @@ url: **/user/save-playstats/**
 
 Json/Dict contains all updated values given as params
 
+## Best times
+Get the best time for each level the user has played \
+url: **/user/best-time/**
+
+| Request Type | Params | Return | Auth Required |
+|----|----|----|----|
+| GET | `None` |`levels: list(int)`, `time: list(float)`| True |
+
 ## Best level time
 Get the users best time in a  given level \
 url: **/user/best-time/<int:level>/**
