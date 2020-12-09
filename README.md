@@ -61,7 +61,7 @@ Json/Dict contains all updated values given as params
 
 ## Best level time
 Get the users best time in a  given level \
-url: **/user/best-time/<int:level>/
+url: **/user/best-time/<int:level>/**
 
 | Request Type | Params | Return | Auth Required |
 |----|----|----|----|
@@ -70,7 +70,7 @@ url: **/user/best-time/<int:level>/
 
 ## All Level stars
 Get all of the users stars from all level\
-url: **/user/level-stars/
+url: **/user/level-stars/**
 
 | Request Type | Params | Return | Auth Required |
 |----|----|----|----|
@@ -78,7 +78,7 @@ url: **/user/level-stars/
 
 ## Single level stars
 Get or update a users stars on a single level\
-url: **/user/level-stars/<int:level>/
+url: **/user/level-stars/<int:level>/**
 
 | Request Type | Params | Return | Auth Required |
 |----|----|----|----|
@@ -87,7 +87,7 @@ url: **/user/level-stars/<int:level>/
 
 ## Post game update (Update all)
 Update all users data at once after a game\
-url: **/user/post-game-update/
+url: **/user/post-game-update/**
 
 | Request Type | Params | Return | Auth Required |
 |----|----|----|----|
