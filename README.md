@@ -65,7 +65,7 @@ url: **/user/best-time/**
 
 | Request Type | Params | Return | Auth Required |
 |----|----|----|----|
-| GET | `None` |`levels: list(int)`, `time: list(float)`| True |
+| GET | `None` |`level: list(int)`, `time: list(float)`| True |
 
 ## Best level time
 Get the users best time in a  given level \
