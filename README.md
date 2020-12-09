@@ -50,7 +50,7 @@ url: **/user/unlocked-level/**
 
 
 ## Save Level results (Without score/stars)
-Save only the users results of the completed level (restarts, time and what level)
+Save only the users results of the completed level (restarts, time and what level) \
 url: **/user/save-playstats/**
 
 | Request Type | Params | Return | Auth Required |
