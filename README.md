@@ -50,6 +50,7 @@ url: **/user/unlocked-level/**
 
 
 ## Save Level results (Without score/stars)
+Save only the users results of the completed level (restarts, time and what level)
 url: **/user/save-playstats/**
 
 | Request Type | Params | Return | Auth Required |
@@ -59,7 +60,7 @@ url: **/user/save-playstats/**
 Json/Dict contains all updated values given as params
 
 ## Best level time
-Get the users best time in a  given level
+Get the users best time in a  given level \
 url: **/user/best-time/<int:level>/
 
 | Request Type | Params | Return | Auth Required |
