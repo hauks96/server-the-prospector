@@ -45,7 +45,7 @@ url: **/user/unlocked-level/**
 
 | Request Type | Params | Return | Auth Required |
 |----|----|----|----|
-| POST | `unlocked_level: str`| `current_level: int` | True |
+| POST | `unlocked_level: int`| `current_level: int` | True |
 | GET | `None`| `unlocked_level: int` | True |
 
 
