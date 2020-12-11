@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 's)r42r&#1m*x#o)928iuu9w)q%84brq)l=*kz(2#908tnx_kj2'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['https://the-prospector.herokuapp.com/']
 

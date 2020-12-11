@@ -98,7 +98,8 @@ def user_progress(request):
         new_level = request.POST.get("unlocked_level")
 
         if new_level is None and data is None:
-            return JsonResponse({"message": "Missing 'unlocked_level' from request."}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"message": "Missing 'unlocked_level' from request."},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         if new_level is None:
             try:
@@ -211,17 +212,33 @@ def single_level_stars(request, level):
         except ValueError as error:
             return JsonResponse({"message": str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
-        level_stars_obj = LevelStar.objects.get_or_create(user=request.user, level=level)[0]
-        data_stars = data['stars']
-        if data_stars > level_stars_obj.stars:
-            if data_stars > 3:
-                return JsonResponse({"message": "Cannot update with more than 3 stars."},
-                                    status=status.HTTP_400_BAD_REQUEST)
-            level_stars_obj.stars = data_stars
+        level_stars_obj = LevelStar.objects.filter(user=request.user, level=level).first()
+        # if the level rating doesn't exist yet create a new one
+        if level_stars_obj is None:
+            level_stars_obj = LevelStar.objects.create(user=request.user, level=level, stars=data['stars'])
             level_stars_obj.save()
+            return JsonResponse({"message": "Updated level stars!", 'level': level, 'stars': data['stars']},
+                                status=status.HTTP_200_OK)
+        # if it already exists first check if we really need to update
+        else:
+            data_stars = data['stars']
+            if data_stars > level_stars_obj.stars:
+                if data_stars > 3:
+                    return JsonResponse({"message": "Cannot update with more than 3 stars."},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                level_stars_obj.stars = data_stars
+                level_stars_obj.save()
 
         return JsonResponse({"message": "Updated level stars!", 'level': level, 'stars': data_stars},
                             status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_world_record(request, level):
+    world_record = LevelCompletionStat.objects.filter(level=level).order_by('time').first()
+    if world_record is None:
+        return JsonResponse({"time": 0}, status=status.HTTP_200_OK)
+    return JsonResponse({"time": world_record.time}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
