@@ -441,9 +441,11 @@ class StatsRep:
         return levels_total
 
 
-def setHeaders(response):
-    response["Access-Control-Allow-Credentials"] = "true"
-    response["Access-Control-Allow-Headers"] = "Accept, X-Access-Token, X-Application-Name, X-Request-Sent-Time"
-    response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response["Access-Control-Allow-Origin"] = "*"
+def setHeaders(response, set_auth=True):
+
+    #response["Access-Control-Allow-Credentials"] = "true"
+    #response["Access-Control-Allow-Headers"] = "Accept, X-Access-Token, X-Application-Name, X-Request-Sent-Time"
+    #response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    #response["Access-Control-Allow-Origin"] = "*"
+
     return response
