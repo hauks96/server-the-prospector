@@ -35,7 +35,8 @@ class LevelCompletionStat(models.Model):
     restarts = models.IntegerField(default=0)
     time = models.FloatField(default=0.0)
     level = models.IntegerField(default=0)
+    stars = models.IntegerField(default=1)
 
     def __str__(self):
         return "[ user: " + self.user.username + " ], [ level: " + str(self.level) + " ], [ restarts: " + \
-               str(self.restarts) + " ], " + "[ time: " + str(self.time) + " ]"
+               str(self.restarts) + " ], " + "[ time: " + str(self.time) + " ]" + "[ stars: " + str(self.stars)+" ]"

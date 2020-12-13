@@ -262,7 +262,7 @@ def single_level_stars(request, level):
 
 @api_view(['GET'])
 def get_world_record(request, level):
-    world_record = LevelCompletionStat.objects.filter(level=level).order_by('time').first()
+    world_record = LevelCompletionStat.objects.filter(level=level, stars=3).order_by('time').first()
     if world_record is None:
         response = JsonResponse({"time": 0}, status=status.HTTP_200_OK)
         return setHeaders(response)
@@ -356,7 +356,7 @@ def update_all(request):
 
     # Add game data to level stats
     stats = LevelCompletionStat.objects.create(user=request.user, restarts=data['restarts'],
-                                               time=data['time'], level=data['level'])
+                                               time=data['time'], level=data['level'], stars=data['stars'])
     stats.save()
 
     if request.user.username != "GuestUser":
@@ -367,7 +367,7 @@ def update_all(request):
         if data_stars > level_stars_obj.stars:
             if data_stars > 3:
                 response = JsonResponse({"message": "Cannot update with more than 3 stars."},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                                        status=status.HTTP_400_BAD_REQUEST)
                 return setHeaders(response)
             level_stars_obj.stars = data_stars
             level_stars_obj.save()
