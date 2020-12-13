@@ -100,3 +100,11 @@ url: **/user/post-game-update/**
 | Request Type | Params | Return | Auth Required |
 |----|----|----|----|
 | POST | `level: int`, `stars: int`, `restarts: int`, `time: float` | `message: str`| True |
+
+## World record
+Get the best time on a given level.\
+url: **world-record-time/<int:level>/**
+
+| Request Type | Params | Return | Auth Required |
+|----|----|----|----|
+| GET | `level: int`| `message: str`| False |
